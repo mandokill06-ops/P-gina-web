@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Juegos - Eleot Herrera</title>
+    <!-- Librería JSZip para descomprimir archivos en vivo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --accent: #58a6ff;
+            --accent-hover: #1f6feb;
+            --text-color: #c9d1d9;
+            --danger: #f85149;
+            --success: #238636;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 480px; background: var(--panel-bg); padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #30363d; }
+        h1, h2 { text-align: center; margin-bottom: 20px; color: #fff; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 14px; color: #8b949e; }
+        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #fff; font-size: 16px; }
+        input:focus { border-color: var(--accent); outline: none; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background: var(--accent-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #da3633; }
+        .hidden { display: none !important; }
+        .game-card { background: #0d1117; border: 1px solid #30363d; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .game-info h3 { color: #fff; font-size: 16px; margin-bottom: 4px; }
+        .game-info p { font-size: 12px; color: #8b949e; }
+        .game-actions { display: flex; gap: 8px; }
+        .game-actions button { padding: 8px 12px; font-size: 14px; margin-top: 0; width: auto; }
+        #emulator-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; z-index: 1000; }
+        .emulator-header { padding: 15px; background: #161b22; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+        .emulator-body { flex: 1; width: 100%; border: none; background: #000; }
+        .logout-btn { background: transparent; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; }
+        .logout-btn:hover { background: var(--danger); color: #fff; }
+        .user-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="container">
+        <h1>🎮 Zona Privada</h1>
+        <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" id="login-user" placeholder="Ingresa tu usuario">
+        </div>
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="login-pass" placeholder="Ingresa tu contraseña">
+        </div>
+        <button onclick="handleLogin()">Iniciar Sesión</button>
+        <p id="login-error" style="color: var(--danger); text-align: center; margin-top: 10px; font-size: 14px;"></p>
+    </div>
+
+    <!-- PANEL DE ADMINISTRADOR -->
+    <div id="admin-screen" class="container hidden" style="max-width: 600px;">
+        <h1>👑 Panel de Administrador</h1>
+        <p style="text-align: center; margin-bottom: 20px; color: var(--accent);">Bienvenido, Eleot Herrera</p>
+        
+        <div style="background: #0d1117; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #30363d;">
+            <h3>Subir Nuevo Juego (.ZIP)</h3>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Nombre del Juego / Versión</label>
+                <input type="text" id="game-name" placeholder="Ej. Arena v4.0">
+            </div>
+            <div class="form-group">
+                <label>Enlace Web del Archivo .ZIP del juego</label>
+                <input type="text" id="game-url" placeholder="Pega aquí el enlace web del archivo ZIP (GitHub u otro servidor)">
+            </div>
+            <button onclick="uploadGameLink()">Registrar Juego en la Nube</button>
+        </div>
+
+        <div style="background: #0d1117; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #30363d;">
+            <h3>Crear Cuenta de Invitado</h3>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Nuevo Usuario Invitado</label>
+                <input type="text" id="new-guest-user" placeholder="Usuario">
+            </div>
+            <div class="form-group">
+                <label>Contraseña de Invitado</label>
+                <input type="text" id="new-guest-pass" placeholder="Contraseña">
+            </div>
+            <button onclick="createGuest()">Crear Usuario</button>
+        </div>
+
+        <h3>Lista de Invitados Registrados</h3>
+        <div id="guests-list" style="margin-top: 10px; max-height: 150px; overflow-y: auto; margin-bottom: 20px;"></div>
+
+        <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <!-- PANEL DE INVITADO -->
+    <div id="guest-screen" class="container hidden" style="max-width: 600px;">
+        <h1>🕹️ Menú de Juegos</h1>
+        <p style="text-align: center; margin-bottom: 20px; color: #8b949e;">Selecciona un juego para ejecutarlo o descargarlo</p>
+        
+        <div id="guest-games-list"></div>
+
+        <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <!-- REPRODUCTOR / EMULADOR WEB INTEGRADO -->
+    <div id="emulator-modal" class="hidden">
+        <div class="emulator-header">
+            <h3 id="emulator-title" style="color: #fff; font-size: 16px;">Juego</h3>
+            <div style="display: flex; gap: 10px;">
+                <button id="download-zip-btn" style="margin-top:0; padding: 6px 12px; background: var(--success);">Descargar ZIP</button>
+                <button onclick="closeEmulator()" class="btn-danger" style="margin-top:0; padding: 6px 12px; width: auto;">X Cerrar</button>
+            </div>
+        </div>
+        <iframe id="emulator-frame" class="emulator-body"></iframe>
+    </div>
+
+    <!-- SCRIPT DE FIREBASE Y LÓGICA -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDmDtKGVDbV-jh68ZxYBKKG2ORURylY7MM",
+            authDomain: "snowproductions.firebaseapp.com",
+            projectId: "snowproductions",
+            storageBucket: "snowproductions.firebasestorage.app",
+            messagingSenderId: "104298997293",
+            appId: "1:104298997293:web:941bb8cafeb9d84afd7aa4",
+            measurementId: "G-V4HEWC3TQ1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.deleteDoc = deleteDoc;
+        window.doc = doc;
+        window.setDoc = setDoc;
+
+        checkInitialSetup();
+    </script>
+
+    <script>
+        let currentBlobUrl = null;
+
+        async function checkInitialSetup() {
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "users"));
+                if (querySnapshot.empty) {
+                    await window.setDoc(window.doc(window.db, "users", "invitado1"), { user: "invitado", pass: "1234" });
+                }
+            } catch(e) { console.log("Cargando base de datos..."); }
+        }
+
+        async function handleLogin() {
+            const u = document.getElementById('login-user').value.trim();
+            const p = document.getElementById('login-pass').value.trim();
+            const err = document.getElementById('login-error');
+
+            if (u === "Eleot Herrera" && p === "EleotyMando777") {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-screen').classList.remove('hidden');
+                loadAdminData();
+                return;
+            }
+
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "users"));
+                let found = false;
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if (data.user === u && data.pass === p) {
+                        found = true;
+                    }
+                });
+
+                if (found) {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('guest-screen').classList.remove('hidden');
+                    loadGuestGames();
+                } else {
+                    err.innerText = "Usuario o contraseña incorrectos.";
+                }
+            } catch(e) {
+                err.innerText = "Error al conectar con la base de datos.";
+            }
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        async function createGuest() {
+            const u = document.getElementById('new-guest-user').value.trim();
+            const p = document.getElementById('new-guest-pass').value.trim();
+            if(!u || !p) { alert("Llena ambos campos"); return; }
+
+            try {
+                await window.addDoc(window.collection(window.db, "users"), { user: u, pass: p });
+                alert("Invitado creado con éxito");
+                document.getElementById('new-guest-user').value = '';
+                document.getElementById('new-guest-pass').value = '';
+                loadAdminData();
+            } catch(e) { alert("Error al crear usuario"); }
+        }
+
+        async function loadAdminData() {
+            const list = document.getElementById('guests-list');
+            list.innerHTML = "Cargando...";
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "users"));
+                list.innerHTML = "";
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if(data.user !== "eleot") {
+                        list.innerHTML += `<div class="user-list-item"><span>👤 <b>${data.user}</b></span></div>`;
+                    }
+                });
+            } catch(e) { list.innerHTML = "Error al cargar invitados."; }
+        }
+
+        async function uploadGameLink() {
+            const name = document.getElementById('game-name').value.trim();
+            const url = document.getElementById('game-url').value.trim();
+            if(!name || !url) { alert("Escribe un nombre y pega el enlace del archivo ZIP"); return; }
+
+            try {
+                await window.addDoc(window.collection(window.db, "games"), {
+                    name: name,
+                    url: url,
+                    fileName: "juego.zip"
+                });
+
+                alert("¡Juego publicado con éxito en la nube!");
+                document.getElementById('game-name').value = '';
+                document.getElementById('game-url').value = '';
+            } catch(e) {
+                alert("Error al registrar el juego: " + e.message);
+            }
+        }
+
+        async function loadGuestGames() {
+            const container = document.getElementById('guest-games-list');
+            container.innerHTML = "Cargando juegos desde la nube...";
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "games"));
+                container.innerHTML = "";
+                if(querySnapshot.empty) {
+                    container.innerHTML = "<p style='text-align:center; color:#8b949e;'>No hay juegos disponibles todavía.</p>";
+                    return;
+                }
+                querySnapshot.forEach((docSnap) => {
+                    const game = docSnap.data();
+                    container.innerHTML += `
+                        <div class="game-card">
+                            <div class="game-info">
+                                <h3>🎮 ${game.name}</h3>
+                                <p>Paquete en la nube</p>
+                            </div>
+                            <div class="game-actions">
+                                <button onclick="playGame('${game.url}', '${game.name}')">Jugar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch(e) {
+                container.innerHTML = "Error al cargar los juegos.";
+            }
+        }
+
+        async function playGame(url, title) {
+            document.getElementById('emulator-title').textContent = title;
+            document.getElementById('emulator-modal').classList.remove('hidden');
+            document.getElementById('download-zip-btn').onclick = () => window.open(url, '_blank');
+
+            const iframe = document.getElementById('emulator-frame');
+            iframe.srcdoc = "<div style='color:white; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;'>Descomprimiendo juego...</div>";
+
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const zip = new JSZip();
+                const zipContent = await zip.loadAsync(blob);
+
+                let htmlContent = "";
+                let indexFile = null;
+
+                for (let filename in zipContent.files) {
+                    if (filename.toLowerCase().endsWith('index.html')) {
+                        indexFile = zipContent.files[filename];
+                        break;
+                    }
+                }
+
+                if (indexFile) {
+                    htmlContent = await indexFile.async("text");
+                    
+                    for (let filename in zipContent.files) {
+                        if (!zipContent.files[filename].dir && !filename.toLowerCase().endsWith('index.html')) {
+                            const fileData = await zipContent.files[filename].async("blob");
+                            const fileBlobUrl = URL.createObjectURL(fileData);
+                            const baseName = filename.split('/').pop();
+                            htmlContent = htmlContent.replaceAll(baseName, fileBlobUrl);
+                            htmlContent = htmlContent.replaceAll(filename, fileBlobUrl);
+                        }
+                    }
+
+                    currentBlobUrl = URL.createObjectURL(new Blob([htmlContent], { type: 'text/html' }));
+                    iframe.src = currentBlobUrl;
+                } else {
+                    iframe.srcdoc = "<div style='color:#f85149; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;'>Error: No se encontró un archivo index.html dentro del ZIP.</div>";
+                }
+            } catch (e) {
+                iframe.srcdoc = "<div style='color:#f85149; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;'>Error al descomprimir el juego (CORS o enlace inválido).</div>";
+            }
+        }
+
+        function closeEmulator() {
+            document.getElementById('emulator-modal').classList.add('hidden');
+            document.getElementById('emulator-frame').src = "";
+            if (currentBlobUrl) {
+                URL.revokeObjectURL(currentBlobUrl);
+                currentBlobUrl = null;
+            }
+        }
+    </script>
+</body>
+</html>
