@@ -52,13 +52,16 @@
                 <button onclick="logout()" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold transition">Salir</button>
             </div>
 
-            <!-- Subir Juego -->
+            <!-- Subir Juego Directo (.ZIP) -->
             <div class="bg-slate-800/50 border border-slate-800 p-4 rounded-xl space-y-3">
-                <h2 class="text-sm font-bold text-indigo-400">Subir Nuevo Juego (.ZIP)</h2>
+                <h2 class="text-sm font-bold text-indigo-400">Subir Juego Local (.ZIP)</h2>
                 <form id="game-form" class="space-y-3">
                     <input type="text" id="game-name" required placeholder="Nombre del Juego / Versión" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-                    <input type="url" id="game-url" required placeholder="Enlace Web del Archivo .ZIP" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold py-2 rounded-lg transition">Registrar Juego en la Nube</button>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Seleccionar archivo .ZIP del celular:</label>
+                        <input type="file" id="game-file" accept=".zip" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+                    </div>
+                    <button type="submit" id="upload-game-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold py-2 rounded-lg transition">Subir y Publicar Juego</button>
                 </form>
             </div>
 
@@ -113,7 +116,7 @@
             <div id="emulator-content" class="flex-1 relative flex items-center justify-center">
                 <div id="emulator-loading" class="text-center">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-2"></div>
-                    <p class="text-xs text-slate-400">Extrayendo y ejecutando juego...</p>
+                    <p class="text-xs text-slate-400" id="loading-text">Extrayendo y ejecutando juego...</p>
                 </div>
                 <iframe id="game-frame" class="w-full h-full border-none hidden"></iframe>
             </div>
@@ -143,7 +146,9 @@
         const gameFrame = document.getElementById("game-frame");
         const emulatorTitle = document.getElementById("emulator-title");
         const emulatorLoading = document.getElementById("emulator-loading");
+        const loadingText = document.getElementById("loading-text");
         const downloadZipBtn = document.getElementById("download-zip-btn");
+        const uploadGameBtn = document.getElementById("upload-game-btn");
 
         let currentObjectUrl = null;
 
@@ -155,7 +160,6 @@
             loginBtn.textContent = "Verificando...";
             loginBtn.disabled = true;
 
-            // 1. Validar Admin localmente de inmediato
             if (u === ADMIN_USER && p === ADMIN_PASS) {
                 localStorage.setItem("session_role", "admin");
                 localStorage.setItem("session_user", u);
@@ -166,15 +170,12 @@
                 return;
             }
 
-            // 2. Validar Invitado en Firestore
             try {
                 const snap = await db.collection("guests").get();
                 let found = false;
                 snap.forEach(doc => {
                     const data = doc.data();
-                    if (data.username === u && data.password === p) {
-                        found = true;
-                    }
+                    if (data.username === u && data.password === p) found = true;
                 });
 
                 if (found) {
@@ -214,18 +215,38 @@
             loginForm.reset();
         }
 
+        // Subir ZIP directamente desde el archivo local convertido a Base64
         document.getElementById("game-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const name = document.getElementById("game-name").value;
-            const url = document.getElementById("game-url").value;
-            try {
-                await db.collection("games").add({ name, url, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                alert("¡Juego publicado con éxito en la nube!");
-                document.getElementById("game-form").reset();
-                loadAdminData();
-            } catch (err) {
-                alert("Error al guardar el juego.");
-            }
+            const fileInput = document.getElementById("game-file");
+            const file = fileInput.files[0];
+
+            if (!file) return alert("Por favor selecciona un archivo ZIP.");
+
+            uploadGameBtn.textContent = "Subiendo a la nube...";
+            uploadGameBtn.disabled = true;
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                try {
+                    const base64Zip = event.target.result;
+                    await db.collection("games").add({ 
+                        name, 
+                        zipData: base64Zip, 
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
+                    alert("¡Juego subido y publicado con éxito en la nube!");
+                    document.getElementById("game-form").reset();
+                    loadAdminData();
+                } catch (err) {
+                    alert("Error al guardar el juego en la base de datos (quizás es muy pesado).");
+                } finally {
+                    uploadGameBtn.textContent = "Subir y Publicar Juego";
+                    uploadGameBtn.disabled = false;
+                }
+            };
+            reader.readAsDataURL(file);
         });
 
         document.getElementById("guest-form").addEventListener("submit", async (e) => {
@@ -293,13 +314,14 @@
                     const btn = document.createElement("button");
                     btn.className = "w-full text-left bg-slate-800 hover:bg-slate-700/80 p-3 rounded-xl transition flex justify-between items-center";
                     btn.innerHTML = `<span class="font-semibold text-sm">${data.name}</span><span class="text-xs bg-indigo-600 px-2.5 py-1 rounded-lg">Jugar 🚀</span>`;
-                    btn.onclick = () => launchGame(data.url, data.name);
+                    btn.onclick = () => launchGame(data.zipData, data.name);
                     gamesList.appendChild(btn);
                 });
             } catch(e) {}
         }
 
-        async function launchGame(url, name) {
+        // Emulador local directo desde el ZIP almacenado
+        async function launchGame(zipData, name) {
             emulatorTitle.textContent = name;
             emulatorScreen.classList.remove("hidden");
             emulatorLoading.classList.remove("hidden");
@@ -309,11 +331,19 @@
             if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
 
             try {
-                const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error("No se pudo descargar el archivo ZIP.");
-                const blob = await response.blob();
+                loadingText.textContent = "Procesando archivo ZIP...";
+                
+                // Convertir Base64 a Blob de forma nativa sin errores de CORS
+                const base64WithoutPrefix = zipData.split(',')[1] || zipData;
+                const binaryString = atob(base64WithoutPrefix);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: "application/zip" });
 
+                loadingText.textContent = "Descomprimiendo juego...";
                 const zip = new JSZip();
                 const zipContent = await zip.loadAsync(blob);
 
@@ -352,40 +382,4 @@
 
                 gameFrame.src = currentObjectUrl;
                 emulatorLoading.classList.add("hidden");
-                gameFrame.classList.remove("hidden");
-
-                downloadZipBtn.onclick = () => {
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = name.toLowerCase().replace(/\s+/g, '-') + '.zip';
-                    a.click();
-                };
-                downloadZipBtn.classList.remove("hidden");
-
-            } catch (err) {
-                emulatorLoading.innerHTML = `<p class="text-red-400 text-sm">Error al cargar el juego: ${err.message}</p>`;
-            }
-        }
-
-        function closeEmulator() {
-            emulatorScreen.classList.add("hidden");
-            gameFrame.src = "";
-            if (currentObjectUrl) {
-                URL.revokeObjectURL(currentObjectUrl);
-                currentObjectUrl = null;
-            }
-        }
-
-        window.onload = () => {
-            const role = localStorage.getItem("session_role");
-            if (role === "admin") {
-                showPanel("admin");
-                loadAdminData();
-            } else if (role === "guest") {
-                showPanel("guest");
-                loadGuestGames();
-            }
-        };
-    </script>
-</body>
-</html>
+         
