@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zona Privada - Juegos HTML5</title>
+    <title>Plataforma de Juegos HTML5</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- JSZip para descomprimir archivos ZIP -->
+    <!-- JSZip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase App y Firestore (SDK Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
@@ -25,7 +25,7 @@
             <div class="text-center mb-6">
                 <span class="text-4xl">🎮</span>
                 <h1 class="text-2xl font-bold mt-2">Zona Privada</h1>
-                <p class="text-slate-400 text-sm">Ingresa con tus credenciales</p>
+                <p class="text-slate-400 text-sm">Plataforma de Juegos HTML5</p>
             </div>
             
             <form id="login-form" class="space-y-4">
@@ -37,7 +37,9 @@
                     <label class="block text-xs font-semibold text-slate-400 mb-1">CONTRASEÑA</label>
                     <input type="password" id="password" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="••••••••">
                 </div>
-                <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 rounded-xl transition duration-200">Iniciar Sesión</button>
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 rounded-xl transition duration-200">
+                    Iniciar Sesión
+                </button>
             </form>
             <p id="login-error" class="text-red-400 text-xs text-center mt-3 hidden"></p>
         </div>
@@ -52,20 +54,22 @@
                 <button onclick="logout()" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold transition">Salir</button>
             </div>
 
-            <!-- Subir Juego Directo (.ZIP) -->
+            <!-- Subir Juego Local (.ZIP) -->
             <div class="bg-slate-800/50 border border-slate-800 p-4 rounded-xl space-y-3">
                 <h2 class="text-sm font-bold text-indigo-400">Subir Juego Local (.ZIP)</h2>
                 <form id="game-form" class="space-y-3">
                     <input type="text" id="game-name" required placeholder="Nombre del Juego / Versión" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Seleccionar archivo .ZIP del celular:</label>
+                        <label class="block text-xs text-slate-400 mb-1">Seleccionar .ZIP de tu dispositivo:</label>
                         <input type="file" id="game-file" accept=".zip" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
                     </div>
-                    <button type="submit" id="upload-game-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold py-2 rounded-lg transition">Subir y Publicar Juego</button>
+                    <button type="submit" id="upload-game-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold py-2 rounded-lg transition">
+                        Subir y Publicar Juego
+                    </button>
                 </form>
             </div>
 
-            <!-- Lista de Juegos para Borrar -->
+            <!-- Lista de Juegos Registrados -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Juegos Registrados</h3>
                 <div id="admin-games-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
@@ -81,7 +85,7 @@
                 </form>
             </div>
 
-            <!-- Lista de Usuarios para Borrar -->
+            <!-- Lista de Usuarios Invitados -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Usuarios Invitados</h3>
                 <div id="admin-users-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
@@ -124,15 +128,18 @@
 
     </div>
 
-    <!-- SCRIPT DE CONFIGURACIÓN Y LÓGICA -->
+    <!-- LÓGICA JAVASCRIPT CON FIREBASE -->
     <script>
+        // 1. Inicialización de Firebase
         const firebaseConfig = { projectId: "snowproductions" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // Credenciales Admin
         const ADMIN_USER = "Eleot Herrera";
         const ADMIN_PASS = "EleotyMando777";
 
+        // Referencias del DOM
         const loginScreen = document.getElementById("login-screen");
         const adminPanel = document.getElementById("admin-panel");
         const guestPanel = document.getElementById("guest-panel");
@@ -152,34 +159,37 @@
 
         let currentObjectUrl = null;
 
-        // Login Handler Directo
+        // 2. Control de Inicio de Sesión
         loginForm.addEventListener("submit", function (e) {
             e.preventDefault();
             const u = document.getElementById("username").value.trim();
             const p = document.getElementById("password").value.trim();
+            
             loginError.classList.add("hidden");
 
-            // Validar Administrador sin esperar a la base de datos
+            // A. Admin (Validación Local Inmediata)
             if (u === ADMIN_USER && p === ADMIN_PASS) {
                 localStorage.setItem("session_role", "admin");
-                localStorage.setItem("session_user", u);
+                localStorage.setItem("session_user", ADMIN_USER);
                 showPanel("admin");
                 loadAdminData();
                 return;
             }
 
-            // Validar Invitado en Firestore
+            // B. Invitados (Validación Firestore)
             loginBtn.textContent = "Verificando...";
             loginBtn.disabled = true;
 
             db.collection("guests").get().then((snap) => {
-                let found = false;
+                let match = false;
                 snap.forEach(doc => {
                     const data = doc.data();
-                    if (data.username === u && data.password === p) found = true;
+                    if (data.username === u && data.password === p) {
+                        match = true;
+                    }
                 });
 
-                if (found) {
+                if (match) {
                     localStorage.setItem("session_role", "guest");
                     localStorage.setItem("session_user", u);
                     showPanel("guest");
@@ -201,6 +211,7 @@
             loginScreen.classList.add("hidden");
             adminPanel.classList.add("hidden");
             guestPanel.classList.add("hidden");
+
             if (role === "admin") adminPanel.classList.remove("hidden");
             if (role === "guest") {
                 guestPanel.classList.remove("hidden");
@@ -216,10 +227,10 @@
             loginForm.reset();
         }
 
-        // Subir ZIP directamente desde el archivo local
+        // 3. Subir Juego Local (.ZIP en Base64 a Firestore)
         document.getElementById("game-form").addEventListener("submit", function (e) {
             e.preventDefault();
-            const name = document.getElementById("game-name").value;
+            const name = document.getElementById("game-name").value.trim();
             const fileInput = document.getElementById("game-file");
             const file = fileInput.files[0];
 
@@ -228,22 +239,23 @@
                 return;
             }
 
-            uploadGameBtn.textContent = "Subiendo a la nube...";
+            uploadGameBtn.textContent = "Guardando en la nube...";
             uploadGameBtn.disabled = true;
 
             const reader = new FileReader();
             reader.onload = function(event) {
                 const base64Zip = event.target.result;
-                db.collection("games").add({ 
-                    name: name, 
-                    zipData: base64Zip, 
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+                
+                db.collection("games").add({
+                    name: name,
+                    zipData: base64Zip,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(() => {
-                    alert("¡Juego subido y publicado con éxito en la nube!");
+                    alert("¡Juego subido y publicado con éxito!");
                     document.getElementById("game-form").reset();
                     loadAdminData();
                 }).catch((err) => {
-                    alert("Error al guardar el juego. Asegúrate de que el archivo no supere los 10MB.");
+                    alert("Error al guardar el juego. Asegúrate de que el archivo no sea demasiado pesado.");
                 }).finally(() => {
                     uploadGameBtn.textContent = "Subir y Publicar Juego";
                     uploadGameBtn.disabled = false;
@@ -252,13 +264,14 @@
             reader.readAsDataURL(file);
         });
 
-        // Crear Invitado
+        // 4. Crear Invitado
         document.getElementById("guest-form").addEventListener("submit", function (e) {
             e.preventDefault();
-            const username = document.getElementById("guest-user").value;
-            const password = document.getElementById("guest-pass").value;
+            const username = document.getElementById("guest-user").value.trim();
+            const password = document.getElementById("guest-pass").value.trim();
+
             db.collection("guests").add({ username, password }).then(() => {
-                alert("¡Cuenta de invitado creada con éxito!");
+                alert("¡Cuenta de invitado creada!");
                 document.getElementById("guest-form").reset();
                 loadAdminData();
             }).catch(() => {
@@ -266,10 +279,12 @@
             });
         });
 
+        // 5. Cargar Datos del Admin
         function loadAdminData() {
+            // Cargar Juegos
             adminGamesList.innerHTML = "";
-            db.collection("games").get().then((gamesSnap) => {
-                gamesSnap.forEach(doc => {
+            db.collection("games").get().then((snap) => {
+                snap.forEach(doc => {
                     const data = doc.data();
                     const div = document.createElement("div");
                     div.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded-lg text-xs";
@@ -277,11 +292,12 @@
                         <button onclick="deleteGame('${doc.id}')" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
                     adminGamesList.appendChild(div);
                 });
-            }).catch(() => {});
+            });
 
+            // Cargar Usuarios
             adminUsersList.innerHTML = "";
-            db.collection("guests").get().then((usersSnap) => {
-                usersSnap.forEach(doc => {
+            db.collection("guests").get().then((snap) => {
+                snap.forEach(doc => {
                     const data = doc.data();
                     const div = document.createElement("div");
                     div.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded-lg text-xs";
@@ -289,21 +305,22 @@
                         <button onclick="deleteUser('${doc.id}')" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
                     adminUsersList.appendChild(div);
                 });
-            }).catch(() => {});
+            });
         }
 
         function deleteGame(id) {
-            if (confirm("¿Estás seguro de eliminar este juego?")) {
+            if (confirm("¿Deseas eliminar este juego?")) {
                 db.collection("games").doc(id).delete().then(() => loadAdminData());
             }
         }
 
         function deleteUser(id) {
-            if (confirm("¿Estás seguro de eliminar este usuario?")) {
+            if (confirm("¿Deseas eliminar este usuario?")) {
                 db.collection("guests").doc(id).delete().then(() => loadAdminData());
             }
         }
 
+        // 6. Cargar Juegos para Invitados
         function loadGuestGames() {
             gamesList.innerHTML = "";
             db.collection("games").get().then((snap) => {
@@ -311,5 +328,45 @@
                     const data = doc.data();
                     const btn = document.createElement("button");
                     btn.className = "w-full text-left bg-slate-800 hover:bg-slate-700/80 p-3 rounded-xl transition flex justify-between items-center";
-                    btn.innerHTML = `<span class="
-        
+                    btn.innerHTML = `<span class="font-semibold text-sm">${data.name}</span><span class="text-xs bg-indigo-600 px-2.5 py-1 rounded-lg">Jugar 🚀</span>`;
+                    btn.onclick = () => launchGame(data.zipData, data.name);
+                    gamesList.appendChild(btn);
+                });
+            });
+        }
+
+        // 7. Descomprimir y Ejecutar el Juego ZIP
+        function launchGame(zipData, name) {
+            emulatorTitle.textContent = name;
+            emulatorScreen.classList.remove("hidden");
+            emulatorLoading.classList.remove("hidden");
+            gameFrame.classList.add("hidden");
+            downloadZipBtn.classList.add("hidden");
+
+            if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+
+            try {
+                loadingText.textContent = "Procesando paquete...";
+                
+                const base64WithoutPrefix = zipData.split(',')[1] || zipData;
+                const binaryString = atob(base64WithoutPrefix);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: "application/zip" });
+
+                loadingText.textContent = "Descomprimiendo archivos...";
+                const zip = new JSZip();
+                
+                zip.loadAsync(blob).then(async (zipContent) => {
+                    let indexFile = null;
+                    let filesMap = {};
+
+                    for (let filename of Object.keys(zipContent.files)) {
+                        const zipEntry = zipContent.files[filename];
+                        if (!zipEntry.dir) {
+                            const fileBlob = await zipEntry.async("blob");
+                            const fileUrl = URL.createObjectURL(fileBlob);
+                            filesMap[filename] = fileUrl;
+                            filesMap['/' + filename] = file
