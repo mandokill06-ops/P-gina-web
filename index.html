@@ -28,19 +28,19 @@
                 <p class="text-slate-400 text-sm">Plataforma de Juegos HTML5</p>
             </div>
             
-            <form id="login-form" class="space-y-4">
+            <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-1">USUARIO</label>
-                    <input type="text" id="username" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="Tu usuario">
+                    <input type="text" id="username" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="Tu usuario">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-1">CONTRASEÑA</label>
-                    <input type="password" id="password" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="••••••••">
+                    <input type="password" id="password" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="••••••••">
                 </div>
-                <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 rounded-xl transition duration-200">
+                <button type="button" id="login-btn" onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 rounded-xl transition duration-200">
                     Iniciar Sesión
                 </button>
-            </form>
+            </div>
             <p id="login-error" class="text-red-400 text-xs text-center mt-3 hidden"></p>
         </div>
 
@@ -57,16 +57,16 @@
             <!-- Subir Juego Local (.ZIP) -->
             <div class="bg-slate-800/50 border border-slate-800 p-4 rounded-xl space-y-3">
                 <h2 class="text-sm font-bold text-indigo-400">Subir Juego Local (.ZIP)</h2>
-                <form id="game-form" class="space-y-3">
-                    <input type="text" id="game-name" required placeholder="Nombre del Juego / Versión" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                <div class="space-y-3">
+                    <input type="text" id="game-name" placeholder="Nombre del Juego / Versión" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Seleccionar .ZIP de tu dispositivo:</label>
-                        <input type="file" id="game-file" accept=".zip" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+                        <input type="file" id="game-file" accept=".zip" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
                     </div>
-                    <button type="submit" id="upload-game-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold py-2 rounded-lg transition">
+                    <button type="button" id="upload-game-btn" onclick="uploadGame()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold py-2 rounded-lg transition">
                         Subir y Publicar Juego
                     </button>
-                </form>
+                </div>
             </div>
 
             <!-- Lista de Juegos Registrados -->
@@ -78,11 +78,11 @@
             <!-- Crear Cuenta Invitado -->
             <div class="bg-slate-800/50 border border-slate-800 p-4 rounded-xl space-y-3">
                 <h2 class="text-sm font-bold text-emerald-400">Crear Cuenta de Invitado</h2>
-                <form id="guest-form" class="space-y-3">
-                    <input type="text" id="guest-user" required placeholder="Usuario Invitado" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-                    <input type="password" id="guest-pass" required placeholder="Contraseña de Invitado" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-sm font-semibold py-2 rounded-lg transition">Crear Cuenta</button>
-                </form>
+                <div class="space-y-3">
+                    <input type="text" id="guest-user" placeholder="Usuario Invitado" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    <input type="password" id="guest-pass" placeholder="Contraseña de Invitado" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    <button type="button" onclick="createGuest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-sm font-semibold py-2 rounded-lg transition">Crear Cuenta</button>
+                </div>
             </div>
 
             <!-- Lista de Usuarios Invitados -->
@@ -128,22 +128,18 @@
 
     </div>
 
-    <!-- LÓGICA JAVASCRIPT CON FIREBASE -->
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
-        // 1. Inicialización de Firebase
         const firebaseConfig = { projectId: "snowproductions" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Credenciales Admin
         const ADMIN_USER = "Eleot Herrera";
         const ADMIN_PASS = "EleotyMando777";
 
-        // Referencias del DOM
         const loginScreen = document.getElementById("login-screen");
         const adminPanel = document.getElementById("admin-panel");
         const guestPanel = document.getElementById("guest-panel");
-        const loginForm = document.getElementById("login-form");
         const loginError = document.getElementById("login-error");
         const loginBtn = document.getElementById("login-btn");
         const gamesList = document.getElementById("games-list");
@@ -159,15 +155,19 @@
 
         let currentObjectUrl = null;
 
-        // 2. Control de Inicio de Sesión
-        loginForm.addEventListener("submit", function (e) {
-            e.preventDefault();
+        function handleLogin() {
             const u = document.getElementById("username").value.trim();
             const p = document.getElementById("password").value.trim();
             
             loginError.classList.add("hidden");
 
-            // A. Admin (Validación Local Inmediata)
+            if (!u || !p) {
+                loginError.textContent = "Completa todos los campos.";
+                loginError.classList.remove("hidden");
+                return;
+            }
+
+            // A. Admin
             if (u === ADMIN_USER && p === ADMIN_PASS) {
                 localStorage.setItem("session_role", "admin");
                 localStorage.setItem("session_user", ADMIN_USER);
@@ -176,7 +176,7 @@
                 return;
             }
 
-            // B. Invitados (Validación Firestore)
+            // B. Invitados
             loginBtn.textContent = "Verificando...";
             loginBtn.disabled = true;
 
@@ -205,7 +205,7 @@
                 loginBtn.textContent = "Iniciar Sesión";
                 loginBtn.disabled = false;
             });
-        });
+        }
 
         function showPanel(role) {
             loginScreen.classList.add("hidden");
@@ -224,18 +224,17 @@
             adminPanel.classList.add("hidden");
             guestPanel.classList.add("hidden");
             loginScreen.classList.remove("hidden");
-            loginForm.reset();
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
         }
 
-        // 3. Subir Juego Local (.ZIP en Base64 a Firestore)
-        document.getElementById("game-form").addEventListener("submit", function (e) {
-            e.preventDefault();
+        function uploadGame() {
             const name = document.getElementById("game-name").value.trim();
             const fileInput = document.getElementById("game-file");
             const file = fileInput.files[0];
 
-            if (!file) {
-                alert("Por favor selecciona un archivo ZIP.");
+            if (!name || !file) {
+                alert("Escribe el nombre y selecciona un archivo ZIP.");
                 return;
             }
 
@@ -252,36 +251,39 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(() => {
                     alert("¡Juego subido y publicado con éxito!");
-                    document.getElementById("game-form").reset();
+                    document.getElementById("game-name").value = "";
+                    fileInput.value = "";
                     loadAdminData();
                 }).catch((err) => {
-                    alert("Error al guardar el juego. Asegúrate de que el archivo no sea demasiado pesado.");
+                    alert("Error al guardar el juego.");
                 }).finally(() => {
                     uploadGameBtn.textContent = "Subir y Publicar Juego";
                     uploadGameBtn.disabled = false;
                 });
             };
             reader.readAsDataURL(file);
-        });
+        }
 
-        // 4. Crear Invitado
-        document.getElementById("guest-form").addEventListener("submit", function (e) {
-            e.preventDefault();
+        function createGuest() {
             const username = document.getElementById("guest-user").value.trim();
             const password = document.getElementById("guest-pass").value.trim();
 
+            if (!username || !password) {
+                alert("Completa los datos del invitado.");
+                return;
+            }
+
             db.collection("guests").add({ username, password }).then(() => {
                 alert("¡Cuenta de invitado creada!");
-                document.getElementById("guest-form").reset();
+                document.getElementById("guest-user").value = "";
+                document.getElementById("guest-pass").value = "";
                 loadAdminData();
             }).catch(() => {
                 alert("Error al crear la cuenta.");
             });
-        });
+        }
 
-        // 5. Cargar Datos del Admin
         function loadAdminData() {
-            // Cargar Juegos
             adminGamesList.innerHTML = "";
             db.collection("games").get().then((snap) => {
                 snap.forEach(doc => {
@@ -294,7 +296,6 @@
                 });
             });
 
-            // Cargar Usuarios
             adminUsersList.innerHTML = "";
             db.collection("guests").get().then((snap) => {
                 snap.forEach(doc => {
@@ -318,55 +319,4 @@
             if (confirm("¿Deseas eliminar este usuario?")) {
                 db.collection("guests").doc(id).delete().then(() => loadAdminData());
             }
-        }
-
-        // 6. Cargar Juegos para Invitados
-        function loadGuestGames() {
-            gamesList.innerHTML = "";
-            db.collection("games").get().then((snap) => {
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const btn = document.createElement("button");
-                    btn.className = "w-full text-left bg-slate-800 hover:bg-slate-700/80 p-3 rounded-xl transition flex justify-between items-center";
-                    btn.innerHTML = `<span class="font-semibold text-sm">${data.name}</span><span class="text-xs bg-indigo-600 px-2.5 py-1 rounded-lg">Jugar 🚀</span>`;
-                    btn.onclick = () => launchGame(data.zipData, data.name);
-                    gamesList.appendChild(btn);
-                });
-            });
-        }
-
-        // 7. Descomprimir y Ejecutar el Juego ZIP
-        function launchGame(zipData, name) {
-            emulatorTitle.textContent = name;
-            emulatorScreen.classList.remove("hidden");
-            emulatorLoading.classList.remove("hidden");
-            gameFrame.classList.add("hidden");
-            downloadZipBtn.classList.add("hidden");
-
-            if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
-
-            try {
-                loadingText.textContent = "Procesando paquete...";
-                
-                const base64WithoutPrefix = zipData.split(',')[1] || zipData;
-                const binaryString = atob(base64WithoutPrefix);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                const blob = new Blob([bytes], { type: "application/zip" });
-
-                loadingText.textContent = "Descomprimiendo archivos...";
-                const zip = new JSZip();
-                
-                zip.loadAsync(blob).then(async (zipContent) => {
-                    let indexFile = null;
-                    let filesMap = {};
-
-                    for (let filename of Object.keys(zipContent.files)) {
-                        const zipEntry = zipContent.files[filename];
-                        if (!zipEntry.dir) {
-                            const fileBlob = await zipEntry.async("blob");
-                            const fileUrl = URL.createObjectURL(fileBlob);
-                            filesMap[filename] = fileUrl;
-                            filesMap['/' + filename] = file
+            
