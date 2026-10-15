@@ -6,7 +6,7 @@
     <title>Zona Privada - Juegos HTML5</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- JSZip para descomprimir archivos ZIP en el navegador -->
+    <!-- JSZip para descomprimir archivos ZIP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -37,7 +37,7 @@
                     <label class="block text-xs font-semibold text-slate-400 mb-1">CONTRASEÑA</label>
                     <input type="password" id="password" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 rounded-xl transition duration-200">Iniciar Sesión</button>
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 rounded-xl transition duration-200">Iniciar Sesión</button>
             </form>
             <p id="login-error" class="text-red-400 text-xs text-center mt-3 hidden"></p>
         </div>
@@ -65,9 +65,7 @@
             <!-- Lista de Juegos para Borrar -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Juegos Registrados</h3>
-                <div id="admin-games-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    <!-- Se cargan dinámicamente -->
-                </div>
+                <div id="admin-games-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- Crear Cuenta Invitado -->
@@ -83,9 +81,7 @@
             <!-- Lista de Usuarios para Borrar -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Usuarios Invitados</h3>
-                <div id="admin-users-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    <!-- Se cargan dinámicamente -->
-                </div>
+                <div id="admin-users-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
             </div>
         </div>
 
@@ -101,9 +97,7 @@
 
             <div class="space-y-2">
                 <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Juegos Disponibles</h2>
-                <div id="games-list" class="space-y-2 max-h-96 overflow-y-auto">
-                    <!-- Lista de juegos -->
-                </div>
+                <div id="games-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
             </div>
         </div>
 
@@ -129,23 +123,19 @@
 
     <!-- SCRIPT DE CONFIGURACIÓN Y LÓGICA -->
     <script>
-        // Configuración Firebase
-        const firebaseConfig = {
-            projectId: "snowproductions"
-        };
+        const firebaseConfig = { projectId: "snowproductions" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Credenciales Admin
         const ADMIN_USER = "Eleot Herrera";
         const ADMIN_PASS = "EleotyMando777";
 
-        // Elementos DOM
         const loginScreen = document.getElementById("login-screen");
         const adminPanel = document.getElementById("admin-panel");
         const guestPanel = document.getElementById("guest-panel");
         const loginForm = document.getElementById("login-form");
         const loginError = document.getElementById("login-error");
+        const loginBtn = document.getElementById("login-btn");
         const gamesList = document.getElementById("games-list");
         const adminGamesList = document.getElementById("admin-games-list");
         const adminUsersList = document.getElementById("admin-users-list");
@@ -157,24 +147,37 @@
 
         let currentObjectUrl = null;
 
-        // Login Handler
         loginForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const u = document.getElementById("username").value.trim();
             const p = document.getElementById("password").value.trim();
             loginError.classList.add("hidden");
+            loginBtn.textContent = "Verificando...";
+            loginBtn.disabled = true;
 
+            // 1. Validar Admin localmente de inmediato
             if (u === ADMIN_USER && p === ADMIN_PASS) {
                 localStorage.setItem("session_role", "admin");
                 localStorage.setItem("session_user", u);
                 showPanel("admin");
                 loadAdminData();
+                loginBtn.textContent = "Iniciar Sesión";
+                loginBtn.disabled = false;
                 return;
             }
 
+            // 2. Validar Invitado en Firestore
             try {
-                const snap = await db.collection("guests").where("username", "==", u).where("password", "==", p).get();
-                if (!snap.empty) {
+                const snap = await db.collection("guests").get();
+                let found = false;
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data.username === u && data.password === p) {
+                        found = true;
+                    }
+                });
+
+                if (found) {
                     localStorage.setItem("session_role", "guest");
                     localStorage.setItem("session_user", u);
                     showPanel("guest");
@@ -186,6 +189,9 @@
             } catch (err) {
                 loginError.textContent = "Error al conectar con la base de datos.";
                 loginError.classList.remove("hidden");
+            } finally {
+                loginBtn.textContent = "Iniciar Sesión";
+                loginBtn.disabled = false;
             }
         });
 
@@ -208,7 +214,6 @@
             loginForm.reset();
         }
 
-        // Registrar Juego
         document.getElementById("game-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const name = document.getElementById("game-name").value;
@@ -223,7 +228,6 @@
             }
         });
 
-        // Crear Invitado
         document.getElementById("guest-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const username = document.getElementById("guest-user").value;
@@ -238,34 +242,150 @@
             }
         });
 
-        // Cargar datos de administración (Juegos y Usuarios con opción de borrar)
         async function loadAdminData() {
-            // Juegos
             adminGamesList.innerHTML = "";
-            const gamesSnap = await db.collection("games").get();
-            gamesSnap.forEach(doc => {
-                const data = doc.data();
-                const div = document.createElement("div");
-                div.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded-lg text-xs";
-                div.innerHTML = `<span class="truncate max-w-[200px] font-medium">${data.name}</span>
-                    <button onclick="deleteGame('${doc.id}')" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
-                adminGamesList.appendChild(div);
-            });
+            try {
+                const gamesSnap = await db.collection("games").get();
+                gamesSnap.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement("div");
+                    div.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded-lg text-xs";
+                    div.innerHTML = `<span class="truncate max-w-[200px] font-medium">${data.name}</span>
+                        <button onclick="deleteGame('${doc.id}')" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
+                    adminGamesList.appendChild(div);
+                });
+            } catch(e) {}
 
-            // Usuarios
             adminUsersList.innerHTML = "";
-            const usersSnap = await db.collection("guests").get();
-            usersSnap.forEach(doc => {
-                const data = doc.data();
-                const div = document.createElement("div");
-                div.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded-lg text-xs";
-                div.innerHTML = `<span class="truncate max-w-[200px] font-medium">${data.username}</span>
-                    <button onclick="deleteUser('${doc.id}')" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
-                adminUsersList.appendChild(div);
-            });
+            try {
+                const usersSnap = await db.collection("guests").get();
+                usersSnap.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement("div");
+                    div.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded-lg text-xs";
+                    div.innerHTML = `<span class="truncate max-w-[200px] font-medium">${data.username}</span>
+                        <button onclick="deleteUser('${doc.id}')" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
+                    adminUsersList.appendChild(div);
+                });
+            } catch(e) {}
         }
 
         async function deleteGame(id) {
             if (confirm("¿Estás seguro de eliminar este juego?")) {
                 await db.collection("games").doc(id).delete();
-        
+                loadAdminData();
+            }
+        }
+
+        async function deleteUser(id) {
+            if (confirm("¿Estás seguro de eliminar este usuario?")) {
+                await db.collection("guests").doc(id).delete();
+                loadAdminData();
+            }
+        }
+
+        async function loadGuestGames() {
+            gamesList.innerHTML = "";
+            try {
+                const snap = await db.collection("games").get();
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const btn = document.createElement("button");
+                    btn.className = "w-full text-left bg-slate-800 hover:bg-slate-700/80 p-3 rounded-xl transition flex justify-between items-center";
+                    btn.innerHTML = `<span class="font-semibold text-sm">${data.name}</span><span class="text-xs bg-indigo-600 px-2.5 py-1 rounded-lg">Jugar 🚀</span>`;
+                    btn.onclick = () => launchGame(data.url, data.name);
+                    gamesList.appendChild(btn);
+                });
+            } catch(e) {}
+        }
+
+        async function launchGame(url, name) {
+            emulatorTitle.textContent = name;
+            emulatorScreen.classList.remove("hidden");
+            emulatorLoading.classList.remove("hidden");
+            gameFrame.classList.add("hidden");
+            downloadZipBtn.classList.add("hidden");
+
+            if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+
+            try {
+                const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error("No se pudo descargar el archivo ZIP.");
+                const blob = await response.blob();
+
+                const zip = new JSZip();
+                const zipContent = await zip.loadAsync(blob);
+
+                let indexFile = null;
+                let filesMap = {};
+
+                for (let filename of Object.keys(zipContent.files)) {
+                    const zipEntry = zipContent.files[filename];
+                    if (!zipEntry.dir) {
+                        const fileBlob = await zipEntry.async("blob");
+                        const fileUrl = URL.createObjectURL(fileBlob);
+                        filesMap[filename] = fileUrl;
+                        filesMap['/' + filename] = fileUrl;
+                        if (filename.toLowerCase().endsWith("index.html") && !indexFile) {
+                            indexFile = fileUrl;
+                        }
+                    }
+                }
+
+                if (!indexFile) throw new Error("No se encontró ningún archivo index.html dentro del ZIP.");
+
+                const htmlResponse = await fetch(indexFile);
+                let htmlText = await htmlResponse.text();
+
+                for (let path in filesMap) {
+                    if (path !== 'index.html' && path !== '/index.html') {
+                        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+                        htmlText = htmlText.replaceAll(`"${cleanPath}"`, `"${filesMap[path]}"`);
+                        htmlText = htmlText.replaceAll(`'${cleanPath}'`, `'${filesMap[path]}'`);
+                        htmlText = htmlText.replaceAll(`="${cleanPath}"`, `="${filesMap[path]}"`);
+                    }
+                }
+
+                const finalBlob = new Blob([htmlText], { type: "text/html" });
+                currentObjectUrl = URL.createObjectURL(finalBlob);
+
+                gameFrame.src = currentObjectUrl;
+                emulatorLoading.classList.add("hidden");
+                gameFrame.classList.remove("hidden");
+
+                downloadZipBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = name.toLowerCase().replace(/\s+/g, '-') + '.zip';
+                    a.click();
+                };
+                downloadZipBtn.classList.remove("hidden");
+
+            } catch (err) {
+                emulatorLoading.innerHTML = `<p class="text-red-400 text-sm">Error al cargar el juego: ${err.message}</p>`;
+            }
+        }
+
+        function closeEmulator() {
+            emulatorScreen.classList.add("hidden");
+            gameFrame.src = "";
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+        }
+
+        window.onload = () => {
+            const role = localStorage.getItem("session_role");
+            if (role === "admin") {
+                showPanel("admin");
+                loadAdminData();
+            } else if (role === "guest") {
+                showPanel("guest");
+                loadGuestGames();
+            }
+        };
+    </script>
+</body>
+</html>
