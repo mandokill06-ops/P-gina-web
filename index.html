@@ -41,19 +41,19 @@
                 <p class="text-emerald-400/80 text-xs uppercase tracking-widest font-semibold">Plataforma Exclusiva HTML5</p>
             </div>
             
-            <form id="login-form" class="space-y-4">
+            <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-emerald-300 mb-1">USUARIO</label>
-                    <input type="text" id="username" required class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="Ingresa tu usuario">
+                    <input type="text" id="username" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="Ingresa tu usuario">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-emerald-300 mb-1">CONTRASEÑA</label>
-                    <input type="password" id="password" required class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="••••••••">
+                    <input type="password" id="password" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="••••••••">
                 </div>
-                <button type="submit" id="login-btn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 cursor-pointer">
+                <button type="button" id="login-btn" onclick="handleLogin()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 cursor-pointer">
                     INICIAR SESIÓN 🚀
                 </button>
-            </form>
+            </div>
             <p id="login-error" class="text-rose-400 text-xs text-center mt-3 font-semibold hidden"></p>
         </div>
 
@@ -70,16 +70,16 @@
             <!-- Subir Juego Local (.ZIP) -->
             <div class="bg-emerald-950/40 border border-emerald-800/40 p-4 rounded-xl space-y-3">
                 <h2 class="text-sm font-bold text-emerald-300">Subir Juego Local (.ZIP)</h2>
-                <form id="game-form" class="space-y-3">
-                    <input type="text" id="game-name" required placeholder="Nombre del Juego" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
+                <div class="space-y-3">
+                    <input type="text" id="game-name" placeholder="Nombre del Juego" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
                     <div>
                         <label class="block text-xs text-emerald-400 mb-1">Seleccionar .ZIP de tu dispositivo:</label>
-                        <input type="file" id="game-file" accept=".zip" required class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-xs text-emerald-200 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400">
+                        <input type="file" id="game-file" accept=".zip" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-xs text-emerald-200 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400">
                     </div>
-                    <button type="submit" id="upload-game-btn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold py-2 rounded-lg transition shadow-md">
+                    <button type="button" id="upload-game-btn" onclick="uploadGame()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold py-2 rounded-lg transition shadow-md">
                         Subir y Publicar Juego
                     </button>
-                </form>
+                </div>
             </div>
 
             <!-- Lista de Juegos Registrados -->
@@ -91,11 +91,11 @@
             <!-- Crear Cuenta Invitado -->
             <div class="bg-emerald-950/40 border border-emerald-800/40 p-4 rounded-xl space-y-3">
                 <h2 class="text-sm font-bold text-emerald-300">Crear Cuenta de Invitado</h2>
-                <form id="guest-form" class="space-y-3">
-                    <input type="text" id="guest-user" required placeholder="Usuario Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
-                    <input type="password" id="guest-pass" required placeholder="Contraseña de Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2 rounded-lg transition">Crear Cuenta</button>
-                </form>
+                <div class="space-y-3">
+                    <input type="text" id="guest-user" placeholder="Usuario Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
+                    <input type="password" id="guest-pass" placeholder="Contraseña de Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
+                    <button type="button" onclick="createGuest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2 rounded-lg transition">Crear Cuenta</button>
+                </div>
             </div>
 
             <!-- Lista de Usuarios Invitados -->
@@ -156,7 +156,6 @@
         const loginScreen = document.getElementById("login-screen");
         const adminPanel = document.getElementById("admin-panel");
         const guestPanel = document.getElementById("guest-panel");
-        const loginForm = document.getElementById("login-form");
         const loginError = document.getElementById("login-error");
         const loginBtn = document.getElementById("login-btn");
         const gamesList = document.getElementById("games-list");
@@ -172,8 +171,7 @@
 
         let currentObjectUrl = null;
 
-        loginForm.addEventListener("submit", function(e) {
-            e.preventDefault();
+        function handleLogin() {
             const u = document.getElementById("username").value.trim();
             const p = document.getElementById("password").value.trim();
             
@@ -221,7 +219,7 @@
                 loginBtn.textContent = "INICIAR SESIÓN 🚀";
                 loginBtn.disabled = false;
             });
-        });
+        }
 
         function showPanel(role) {
             loginScreen.classList.add("hidden");
@@ -244,8 +242,7 @@
             document.getElementById("password").value = "";
         }
 
-        document.getElementById("game-form").addEventListener("submit", function(e) {
-            e.preventDefault();
+        function uploadGame() {
             const name = document.getElementById("game-name").value.trim();
             const fileInput = document.getElementById("game-file");
             const file = fileInput.files[0];
@@ -268,7 +265,8 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(() => {
                     alert("¡Juego subido y publicado con éxito!");
-                    document.getElementById("game-form").reset();
+                    document.getElementById("game-name").value = "";
+                    fileInput.value = "";
                     loadAdminData();
                 }).catch(() => {
                     alert("Error al guardar el juego.");
@@ -278,10 +276,9 @@
                 });
             };
             reader.readAsDataURL(file);
-        });
+        }
 
-        document.getElementById("guest-form").addEventListener("submit", function(e) {
-            e.preventDefault();
+        function createGuest() {
             const username = document.getElementById("guest-user").value.trim();
             const password = document.getElementById("guest-pass").value.trim();
 
@@ -292,12 +289,13 @@
 
             db.collection("guests").add({ username, password }).then(() => {
                 alert("¡Cuenta de invitado creada!");
-                document.getElementById("guest-form").reset();
+                document.getElementById("guest-user").value = "";
+                document.getElementById("guest-pass").value = "";
                 loadAdminData();
             }).catch(() => {
                 alert("Error al crear la cuenta.");
             });
-        });
+        }
 
         function loadAdminData() {
             adminGamesList.innerHTML = "";
@@ -373,4 +371,94 @@
                 const blob = new Blob([bytes], { type: "application/zip" });
 
                 loadingText.textContent = "Descomprimiendo archivos...";
-                const zip = new JSZ
+                const zip = new JSZip();
+                
+                zip.loadAsync(blob).then(async (zipContent) => {
+                    let indexFile = null;
+                    let filesMap = {};
+
+                    for (let filename of Object.keys(zipContent.files)) {
+                        const zipEntry = zipContent.files[filename];
+                        if (!zipEntry.dir) {
+                            const fileBlob = await zipEntry.async("blob");
+                            const fileUrl = URL.createObjectURL(fileBlob);
+                            filesMap[filename] = fileUrl;
+                            filesMap['/' + filename] = fileUrl;
+                            if (filename.toLowerCase().endsWith("index.html") && !indexFile) {
+                                indexFile = fileUrl;
+                            }
+                        }
+                    }
+
+                    if (!indexFile) throw new Error("No se encontró index.html dentro del archivo ZIP.");
+
+                    const htmlResponse = await fetch(indexFile);
+                    let htmlText = await htmlResponse.text();
+
+                    for (let path in filesMap) {
+                        if (path !== 'index.html' && path !== '/index.html') {
+                            const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+                            htmlText = htmlText.replaceAll(`"${cleanPath}"`, `"${filesMap[path]}"`);
+                            htmlText = htmlText.replaceAll(`'${cleanPath}'`, `'${filesMap[path]}'`);
+                            htmlText = htmlText.replaceAll(`="${cleanPath}"`, `="${filesMap[path]}"`);
+                        }
+                    }
+
+                    const finalBlob = new Blob([htmlText], { type: "text/html" });
+                    currentObjectUrl = URL.createObjectURL(finalBlob);
+
+                    gameFrame.src = currentObjectUrl;
+                    emulatorLoading.classList.add("hidden");
+                    gameFrame.classList.remove("hidden");
+
+                    downloadZipBtn.onclick = () => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = name.toLowerCase().replace(/\s+/g, '-') + '.zip';
+                        a.click();
+                    };
+                    downloadZipBtn.classList.remove("hidden");
+                }).catch((err) => {
+                    emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al descomprimir: ${err.message}</p>`;
+                });
+
+            } catch (err) {
+                emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al procesar: ${err.message}</p>`;
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                emulatorScreen.requestFullscreen().catch(err => {
+                    alert("No se pudo activar pantalla completa.");
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function closeEmulator() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+            emulatorScreen.classList.add("hidden");
+            gameFrame.src = "";
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+        }
+
+        window.onload = function() {
+            const role = localStorage.getItem("session_role");
+            if (role === "admin") {
+                showPanel("admin");
+                loadAdminData();
+            } else if (role === "guest") {
+                showPanel("guest");
+                loadGuestGames();
+            }
+        };
+    </script>
+</body>
+</html>
