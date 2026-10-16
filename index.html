@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT BLINDADA -->
     <script>
         const firebaseConfig = { projectId: "snowproductions" };
         if (!firebase.apps.length) {
@@ -153,33 +153,24 @@
         const ADMIN_USER = "ZenHan";
         const ADMIN_PASS = "Vikingo9012";
 
-        const loginScreen = document.getElementById("login-screen");
-        const adminPanel = document.getElementById("admin-panel");
-        const guestPanel = document.getElementById("guest-panel");
-        const loginError = document.getElementById("login-error");
-        const loginBtn = document.getElementById("login-btn");
-        const gamesList = document.getElementById("games-list");
-        const adminGamesList = document.getElementById("admin-games-list");
-        const adminUsersList = document.getElementById("admin-users-list");
-        const emulatorScreen = document.getElementById("emulator-screen");
-        const gameFrame = document.getElementById("game-frame");
-        const emulatorTitle = document.getElementById("emulator-title");
-        const emulatorLoading = document.getElementById("emulator-loading");
-        const loadingText = document.getElementById("loading-text");
-        const downloadZipBtn = document.getElementById("download-zip-btn");
-        const uploadGameBtn = document.getElementById("upload-game-btn");
-
         let currentObjectUrl = null;
 
         function handleLogin() {
-            const u = document.getElementById("username").value.trim();
-            const p = document.getElementById("password").value.trim();
+            const uInput = document.getElementById("username");
+            const pInput = document.getElementById("password");
+            const loginError = document.getElementById("login-error");
+            const loginBtn = document.getElementById("login-btn");
+
+            const u = uInput ? uInput.value.trim() : "";
+            const p = pInput ? pInput.value.trim() : "";
             
-            loginError.classList.add("hidden");
+            if (loginError) loginError.classList.add("hidden");
 
             if (!u || !p) {
-                loginError.textContent = "Completa todos los campos.";
-                loginError.classList.remove("hidden");
+                if (loginError) {
+                    loginError.textContent = "Completa todos los campos.";
+                    loginError.classList.remove("hidden");
+                }
                 return;
             }
 
@@ -191,8 +182,10 @@
                 return;
             }
 
-            loginBtn.textContent = "Verificando...";
-            loginBtn.disabled = true;
+            if (loginBtn) {
+                loginBtn.textContent = "Verificando...";
+                loginBtn.disabled = true;
+            }
 
             db.collection("guests").get().then((snap) => {
                 let match = false;
@@ -209,51 +202,75 @@
                     showPanel("guest");
                     loadGuestGames();
                 } else {
-                    loginError.textContent = "Usuario o contraseña incorrectos.";
-                    loginError.classList.remove("hidden");
+                    if (loginError) {
+                        loginError.textContent = "Usuario o contraseña incorrectos.";
+                        loginError.classList.remove("hidden");
+                    }
                 }
             }).catch((err) => {
-                loginError.textContent = "Error al conectar con la base de datos.";
-                loginError.classList.remove("hidden");
+                if (loginError) {
+                    loginError.textContent = "Error al conectar con la base de datos.";
+                    loginError.classList.remove("hidden");
+                }
             }).finally(() => {
-                loginBtn.textContent = "INICIAR SESIÓN 🚀";
-                loginBtn.disabled = false;
+                if (loginBtn) {
+                    loginBtn.textContent = "INICIAR SESIÓN 🚀";
+                    loginBtn.disabled = false;
+                }
             });
         }
 
         function showPanel(role) {
-            loginScreen.classList.add("hidden");
-            adminPanel.classList.add("hidden");
-            guestPanel.classList.add("hidden");
+            const loginScreen = document.getElementById("login-screen");
+            const adminPanel = document.getElementById("admin-panel");
+            const guestPanel = document.getElementById("guest-panel");
 
-            if (role === "admin") adminPanel.classList.remove("hidden");
-            if (role === "guest") {
+            if (loginScreen) loginScreen.classList.add("hidden");
+            if (adminPanel) adminPanel.classList.add("hidden");
+            if (guestPanel) guestPanel.classList.add("hidden");
+
+            if (role === "admin" && adminPanel) adminPanel.classList.remove("hidden");
+            if (role === "guest" && guestPanel) {
                 guestPanel.classList.remove("hidden");
-                document.getElementById("guest-welcome").textContent = `Conectado como: ${localStorage.getItem("session_user")}`;
+                const guestWelcome = document.getElementById("guest-welcome");
+                if (guestWelcome) {
+                    guestWelcome.textContent = `Conectado como: ${localStorage.getItem("session_user")}`;
+                }
             }
         }
 
         function logout() {
             localStorage.clear();
-            adminPanel.classList.add("hidden");
-            guestPanel.classList.add("hidden");
-            loginScreen.classList.remove("hidden");
-            document.getElementById("username").value = "";
-            document.getElementById("password").value = "";
+            const adminPanel = document.getElementById("admin-panel");
+            const guestPanel = document.getElementById("guest-panel");
+            const loginScreen = document.getElementById("login-screen");
+            const uInput = document.getElementById("username");
+            const pInput = document.getElementById("password");
+
+            if (adminPanel) adminPanel.classList.add("hidden");
+            if (guestPanel) guestPanel.classList.add("hidden");
+            if (loginScreen) loginScreen.classList.remove("hidden");
+            if (uInput) uInput.value = "";
+            if (pInput) pInput.value = "";
         }
 
         function uploadGame() {
-            const name = document.getElementById("game-name").value.trim();
+            const nameInput = document.getElementById("game-name");
             const fileInput = document.getElementById("game-file");
-            const file = fileInput.files[0];
+            const uploadGameBtn = document.getElementById("upload-game-btn");
+
+            const name = nameInput ? nameInput.value.trim() : "";
+            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
 
             if (!name || !file) {
                 alert("Escribe el nombre y selecciona un archivo ZIP.");
                 return;
             }
 
-            uploadGameBtn.textContent = "Guardando en la nube...";
-            uploadGameBtn.disabled = true;
+            if (uploadGameBtn) {
+                uploadGameBtn.textContent = "Guardando en la nube...";
+                uploadGameBtn.disabled = true;
+            }
 
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -265,22 +282,27 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(() => {
                     alert("¡Juego subido y publicado con éxito!");
-                    document.getElementById("game-name").value = "";
-                    fileInput.value = "";
+                    if (nameInput) nameInput.value = "";
+                    if (fileInput) fileInput.value = "";
                     loadAdminData();
                 }).catch(() => {
                     alert("Error al guardar el juego.");
                 }).finally(() => {
-                    uploadGameBtn.textContent = "Subir y Publicar Juego";
-                    uploadGameBtn.disabled = false;
+                    if (uploadGameBtn) {
+                        uploadGameBtn.textContent = "Subir y Publicar Juego";
+                        uploadGameBtn.disabled = false;
+                    }
                 });
             };
             reader.readAsDataURL(file);
         }
 
         function createGuest() {
-            const username = document.getElementById("guest-user").value.trim();
-            const password = document.getElementById("guest-pass").value.trim();
+            const userInput = document.getElementById("guest-user");
+            const passInput = document.getElementById("guest-pass");
+
+            const username = userInput ? userInput.value.trim() : "";
+            const password = passInput ? passInput.value.trim() : "";
 
             if (!username || !password) {
                 alert("Completa los datos del invitado.");
@@ -289,8 +311,8 @@
 
             db.collection("guests").add({ username, password }).then(() => {
                 alert("¡Cuenta de invitado creada!");
-                document.getElementById("guest-user").value = "";
-                document.getElementById("guest-pass").value = "";
+                if (userInput) userInput.value = "";
+                if (passInput) passInput.value = "";
                 loadAdminData();
             }).catch(() => {
                 alert("Error al crear la cuenta.");
@@ -298,29 +320,36 @@
         }
 
         function loadAdminData() {
-            adminGamesList.innerHTML = "";
-            db.collection("games").get().then((snap) => {
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const div = document.createElement("div");
-                    div.className = "flex justify-between items-center bg-emerald-950/60 p-2.5 rounded-lg text-xs border border-emerald-800/40";
-                    div.innerHTML = `<span class="truncate max-w-[200px] font-medium text-emerald-200">${data.name}</span>
-                        <button type="button" onclick="deleteGame('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold cursor-pointer">Borrar</button>`;
-                    adminGamesList.appendChild(div);
-                });
-            });
+            const adminGamesList = document.getElementById("admin-games-list");
+            const adminUsersList = document.getElementById("admin-users-list");
 
-            adminUsersList.innerHTML = "";
-            db.collection("guests").get().then((snap) => {
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const div = document.createElement("div");
-                    div.className = "flex justify-between items-center bg-emerald-950/60 p-2.5 rounded-lg text-xs border border-emerald-800/40";
-                    div.innerHTML = `<span class="truncate max-w-[200px] font-medium text-emerald-200">${data.username}</span>
-                        <button type="button" onclick="deleteUser('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold cursor-pointer">Borrar</button>`;
-                    adminUsersList.appendChild(div);
+            if (adminGamesList) {
+                adminGamesList.innerHTML = "";
+                db.collection("games").get().then((snap) => {
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const div = document.createElement("div");
+                        div.className = "flex justify-between items-center bg-emerald-950/60 p-2.5 rounded-lg text-xs border border-emerald-800/40";
+                        div.innerHTML = `<span class="truncate max-w-[200px] font-medium text-emerald-200">${data.name}</span>
+                            <button type="button" onclick="deleteGame('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold cursor-pointer">Borrar</button>`;
+                        adminGamesList.appendChild(div);
+                    });
                 });
-            });
+            }
+
+            if (adminUsersList) {
+                adminUsersList.innerHTML = "";
+                db.collection("guests").get().then((snap) => {
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const div = document.createElement("div");
+                        div.className = "flex justify-between items-center bg-emerald-950/60 p-2.5 rounded-lg text-xs border border-emerald-800/40";
+                        div.innerHTML = `<span class="truncate max-w-[200px] font-medium text-emerald-200">${data.username}</span>
+                            <button type="button" onclick="deleteUser('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold cursor-pointer">Borrar</button>`;
+                        adminUsersList.appendChild(div);
+                    });
+                });
+            }
         }
 
         function deleteGame(id) {
@@ -336,6 +365,9 @@
         }
 
         function loadGuestGames() {
+            const gamesList = document.getElementById("games-list");
+            if (!gamesList) return;
+
             gamesList.innerHTML = "";
             db.collection("games").get().then((snap) => {
                 snap.forEach(doc => {
@@ -351,16 +383,23 @@
         }
 
         function launchGame(zipData, name) {
-            emulatorTitle.textContent = name;
-            emulatorScreen.classList.remove("hidden");
-            emulatorLoading.classList.remove("hidden");
-            gameFrame.classList.add("hidden");
-            downloadZipBtn.classList.add("hidden");
+            const emulatorTitle = document.getElementById("emulator-title");
+            const emulatorScreen = document.getElementById("emulator-screen");
+            const emulatorLoading = document.getElementById("emulator-loading");
+            const loadingText = document.getElementById("loading-text");
+            const gameFrame = document.getElementById("game-frame");
+            const downloadZipBtn = document.getElementById("download-zip-btn");
+
+            if (emulatorTitle) emulatorTitle.textContent = name;
+            if (emulatorScreen) emulatorScreen.classList.remove("hidden");
+            if (emulatorLoading) emulatorLoading.classList.remove("hidden");
+            if (gameFrame) gameFrame.classList.add("hidden");
+            if (downloadZipBtn) downloadZipBtn.classList.add("hidden");
 
             if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
 
             try {
-                loadingText.textContent = "Procesando paquete...";
+                if (loadingText) loadingText.textContent = "Procesando paquete...";
                 
                 const base64WithoutPrefix = zipData.split(',')[1] || zipData;
                 const binaryString = atob(base64WithoutPrefix);
@@ -370,7 +409,7 @@
                 }
                 const blob = new Blob([bytes], { type: "application/zip" });
 
-                loadingText.textContent = "Descomprimiendo archivos...";
+                if (loadingText) loadingText.textContent = "Descomprimiendo archivos...";
                 const zip = new JSZip();
                 
                 zip.loadAsync(blob).then(async (zipContent) => {
@@ -407,27 +446,38 @@
                     const finalBlob = new Blob([htmlText], { type: "text/html" });
                     currentObjectUrl = URL.createObjectURL(finalBlob);
 
-                    gameFrame.src = currentObjectUrl;
-                    emulatorLoading.classList.add("hidden");
-                    gameFrame.classList.remove("hidden");
+                    if (gameFrame) {
+                        gameFrame.src = currentObjectUrl;
+                    }
+                    if (emulatorLoading) emulatorLoading.classList.add("hidden");
+                    if (gameFrame) gameFrame.classList.remove("hidden");
 
-                    downloadZipBtn.onclick = () => {
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(blob);
-                        a.download = name.toLowerCase().replace(/\s+/g, '-') + '.zip';
-                        a.click();
-                    };
-                    downloadZipBtn.classList.remove("hidden");
+                    if (downloadZipBtn) {
+                        downloadZipBtn.onclick = () => {
+                            const a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = name.toLowerCase().replace(/\s+/g, '-') + '.zip';
+                            a.click();
+                        };
+                        downloadZipBtn.classList.remove("hidden");
+                    }
                 }).catch((err) => {
-                    emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al descomprimir: ${err.message}</p>`;
+                    if (emulatorLoading) {
+                        emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al descomprimir: ${err.message}</p>`;
+                    }
                 });
 
             } catch (err) {
-                emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al procesar: ${err.message}</p>`;
+                if (emulatorLoading) {
+                    emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al procesar: ${err.message}</p>`;
+                }
             }
         }
 
         function toggleFullscreen() {
+            const emulatorScreen = document.getElementById("emulator-screen");
+            if (!emulatorScreen) return;
+
             if (!document.fullscreenElement) {
                 emulatorScreen.requestFullscreen().catch(err => {
                     alert("No se pudo activar pantalla completa.");
@@ -441,8 +491,11 @@
             if (document.fullscreenElement) {
                 document.exitFullscreen().catch(() => {});
             }
-            emulatorScreen.classList.add("hidden");
-            gameFrame.src = "";
+            const emulatorScreen = document.getElementById("emulator-screen");
+            const gameFrame = document.getElementById("game-frame");
+
+            if (emulatorScreen) emulatorScreen.classList.add("hidden");
+            if (gameFrame) gameFrame.src = "";
             if (currentObjectUrl) {
                 URL.revokeObjectURL(currentObjectUrl);
                 currentObjectUrl = null;
