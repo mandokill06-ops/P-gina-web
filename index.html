@@ -41,19 +41,19 @@
                 <p class="text-emerald-400/80 text-xs uppercase tracking-widest font-semibold">Plataforma Exclusiva HTML5</p>
             </div>
             
-            <div class="space-y-4">
+            <form id="login-form" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-emerald-300 mb-1">USUARIO</label>
-                    <input type="text" id="username" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="Ingresa tu usuario">
+                    <input type="text" id="username" required class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="Ingresa tu usuario">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-emerald-300 mb-1">CONTRASEÑA</label>
-                    <input type="password" id="password" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="••••••••">
+                    <input type="password" id="password" required class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-400 placeholder-emerald-700" placeholder="••••••••">
                 </div>
-                <button type="button" id="login-btn" onclick="handleLogin()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20">
+                <button type="submit" id="login-btn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 cursor-pointer">
                     INICIAR SESIÓN 🚀
                 </button>
-            </div>
+            </form>
             <p id="login-error" class="text-rose-400 text-xs text-center mt-3 font-semibold hidden"></p>
         </div>
 
@@ -64,22 +64,22 @@
                     <h1 class="text-xl font-bold flex items-center gap-2 text-emerald-300">👑 Panel Admin</h1>
                     <p class="text-xs text-emerald-400/80">Control Maestro - ZenHan</p>
                 </div>
-                <button onclick="logout()" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition">Salir</button>
+                <button type="button" onclick="logout()" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition">Salir</button>
             </div>
 
             <!-- Subir Juego Local (.ZIP) -->
             <div class="bg-emerald-950/40 border border-emerald-800/40 p-4 rounded-xl space-y-3">
                 <h2 class="text-sm font-bold text-emerald-300">Subir Juego Local (.ZIP)</h2>
-                <div class="space-y-3">
-                    <input type="text" id="game-name" placeholder="Nombre del Juego" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
+                <form id="game-form" class="space-y-3">
+                    <input type="text" id="game-name" required placeholder="Nombre del Juego" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
                     <div>
                         <label class="block text-xs text-emerald-400 mb-1">Seleccionar .ZIP de tu dispositivo:</label>
-                        <input type="file" id="game-file" accept=".zip" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-xs text-emerald-200 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400">
+                        <input type="file" id="game-file" accept=".zip" required class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-xs text-emerald-200 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400">
                     </div>
-                    <button type="button" id="upload-game-btn" onclick="uploadGame()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold py-2 rounded-lg transition shadow-md">
+                    <button type="submit" id="upload-game-btn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold py-2 rounded-lg transition shadow-md">
                         Subir y Publicar Juego
                     </button>
-                </div>
+                </form>
             </div>
 
             <!-- Lista de Juegos Registrados -->
@@ -91,11 +91,11 @@
             <!-- Crear Cuenta Invitado -->
             <div class="bg-emerald-950/40 border border-emerald-800/40 p-4 rounded-xl space-y-3">
                 <h2 class="text-sm font-bold text-emerald-300">Crear Cuenta de Invitado</h2>
-                <div class="space-y-3">
-                    <input type="text" id="guest-user" placeholder="Usuario Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
-                    <input type="password" id="guest-pass" placeholder="Contraseña de Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
-                    <button type="button" onclick="createGuest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2 rounded-lg transition">Crear Cuenta</button>
-                </div>
+                <form id="guest-form" class="space-y-3">
+                    <input type="text" id="guest-user" required placeholder="Usuario Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
+                    <input type="password" id="guest-pass" required placeholder="Contraseña de Invitado" class="w-full bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-emerald-700">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2 rounded-lg transition">Crear Cuenta</button>
+                </form>
             </div>
 
             <!-- Lista de Usuarios Invitados -->
@@ -112,7 +112,7 @@
                     <h1 class="text-xl font-bold text-emerald-300">🎮 Zona de Juegos</h1>
                     <p id="guest-welcome" class="text-xs text-emerald-400/80"></p>
                 </div>
-                <button onclick="logout()" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition">Salir</button>
+                <button type="button" onclick="logout()" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition">Salir</button>
             </div>
 
             <div class="space-y-2">
@@ -126,8 +126,8 @@
             <div class="bg-emerald-950 border-b border-emerald-800 p-3 flex justify-between items-center">
                 <span id="emulator-title" class="font-bold text-sm text-emerald-300">Cargando juego...</span>
                 <div class="flex gap-2">
-                    <button id="download-zip-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hidden">Descargar ZIP</button>
-                    <button onclick="closeEmulator()" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">X Cerrar</button>
+                    <button type="button" id="download-zip-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hidden">Descargar ZIP</button>
+                    <button type="button" onclick="closeEmulator()" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">X Cerrar</button>
                 </div>
             </div>
             <div id="emulator-content" class="flex-1 relative flex items-center justify-center">
@@ -141,7 +141,7 @@
 
     </div>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT ROBUSTA -->
     <script>
         const firebaseConfig = { projectId: "snowproductions" };
         if (!firebase.apps.length) {
@@ -155,6 +155,7 @@
         const loginScreen = document.getElementById("login-screen");
         const adminPanel = document.getElementById("admin-panel");
         const guestPanel = document.getElementById("guest-panel");
+        const loginForm = document.getElementById("login-form");
         const loginError = document.getElementById("login-error");
         const loginBtn = document.getElementById("login-btn");
         const gamesList = document.getElementById("games-list");
@@ -170,7 +171,9 @@
 
         let currentObjectUrl = null;
 
-        function handleLogin() {
+        // Event listener seguro para el formulario de login
+        loginForm.addEventListener("submit", function(e) {
+            e.preventDefault();
             const u = document.getElementById("username").value.trim();
             const p = document.getElementById("password").value.trim();
             
@@ -220,7 +223,7 @@
                 loginBtn.textContent = "INICIAR SESIÓN 🚀";
                 loginBtn.disabled = false;
             });
-        }
+        });
 
         function showPanel(role) {
             loginScreen.classList.add("hidden");
@@ -243,7 +246,8 @@
             document.getElementById("password").value = "";
         }
 
-        function uploadGame() {
+        document.getElementById("game-form").addEventListener("submit", function(e) {
+            e.preventDefault();
             const name = document.getElementById("game-name").value.trim();
             const fileInput = document.getElementById("game-file");
             const file = fileInput.files[0];
@@ -266,8 +270,7 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(() => {
                     alert("¡Juego subido y publicado con éxito!");
-                    document.getElementById("game-name").value = "";
-                    fileInput.value = "";
+                    document.getElementById("game-form").reset();
                     loadAdminData();
                 }).catch(() => {
                     alert("Error al guardar el juego.");
@@ -277,9 +280,10 @@
                 });
             };
             reader.readAsDataURL(file);
-        }
+        });
 
-        function createGuest() {
+        document.getElementById("guest-form").addEventListener("submit", function(e) {
+            e.preventDefault();
             const username = document.getElementById("guest-user").value.trim();
             const password = document.getElementById("guest-pass").value.trim();
 
@@ -290,13 +294,12 @@
 
             db.collection("guests").add({ username, password }).then(() => {
                 alert("¡Cuenta de invitado creada!");
-                document.getElementById("guest-user").value = "";
-                document.getElementById("guest-pass").value = "";
+                document.getElementById("guest-form").reset();
                 loadAdminData();
             }).catch(() => {
                 alert("Error al crear la cuenta.");
             });
-        }
+        });
 
         function loadAdminData() {
             adminGamesList.innerHTML = "";
@@ -306,7 +309,7 @@
                     const div = document.createElement("div");
                     div.className = "flex justify-between items-center bg-emerald-950/60 p-2.5 rounded-lg text-xs border border-emerald-800/40";
                     div.innerHTML = `<span class="truncate max-w-[200px] font-medium text-emerald-200">${data.name}</span>
-                        <button onclick="deleteGame('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
+                        <button type="button" onclick="deleteGame('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold cursor-pointer">Borrar</button>`;
                     adminGamesList.appendChild(div);
                 });
             });
@@ -318,7 +321,7 @@
                     const div = document.createElement("div");
                     div.className = "flex justify-between items-center bg-emerald-950/60 p-2.5 rounded-lg text-xs border border-emerald-800/40";
                     div.innerHTML = `<span class="truncate max-w-[200px] font-medium text-emerald-200">${data.username}</span>
-                        <button onclick="deleteUser('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold">Borrar</button>`;
+                        <button type="button" onclick="deleteUser('${doc.id}')" class="bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 px-2.5 py-1 rounded font-semibold cursor-pointer">Borrar</button>`;
                     adminUsersList.appendChild(div);
                 });
             });
@@ -342,7 +345,8 @@
                 snap.forEach(doc => {
                     const data = doc.data();
                     const btn = document.createElement("button");
-                    btn.className = "w-full text-left bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-800/50 p-3 rounded-xl transition flex justify-between items-center";
+                    btn.type = "button";
+                    btn.className = "w-full text-left bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-800/50 p-3 rounded-xl transition flex justify-between items-center cursor-pointer";
                     btn.innerHTML = `<span class="font-semibold text-sm text-emerald-200">${data.name}</span><span class="text-xs bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg">Jugar 🚀</span>`;
                     btn.onclick = () => launchGame(data.zipData, data.name);
                     gamesList.appendChild(btn);
@@ -377,11 +381,4 @@
                     let indexFile = null;
                     let filesMap = {};
 
-                    for (let filename of Object.keys(zipContent.files)) {
-                        const zipEntry = zipContent.files[filename];
-                        if (!zipEntry.dir) {
-                            const fileBlob = await zipEntry.async("blob");
-                            const fileUrl = URL.createObjectURL(fileBlob);
-                            filesMap[filename] = fileUrl;
-                            filesMap['/' + filename] = fileUrl;
-                           
+          
