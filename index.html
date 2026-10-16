@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ZenHan Gaming Hub - Zona Privada</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -121,27 +121,28 @@
             </div>
         </div>
 
-        <!-- REPRODUCTOR DE JUEGO INTEGRADO -->
-        <div id="emulator-screen" class="hidden fixed inset-0 bg-slate-950 z-50 flex flex-col">
-            <div class="bg-emerald-950 border-b border-emerald-800 p-3 flex justify-between items-center">
-                <span id="emulator-title" class="font-bold text-sm text-emerald-300">Cargando juego...</span>
-                <div class="flex gap-2">
-                    <button type="button" id="download-zip-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hidden">Descargar ZIP</button>
-                    <button type="button" onclick="closeEmulator()" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">X Cerrar</button>
-                </div>
-            </div>
-            <div id="emulator-content" class="flex-1 relative flex items-center justify-center">
-                <div id="emulator-loading" class="text-center">
-                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-2"></div>
-                    <p class="text-xs text-emerald-400" id="loading-text">Extrayendo y ejecutando juego...</p>
-                </div>
-                <iframe id="game-frame" class="w-full h-full border-none hidden"></iframe>
-            </div>
-        </div>
-
     </div>
 
-    <!-- LÓGICA JAVASCRIPT ROBUSTA -->
+    <!-- REPRODUCTOR A PANTALLA COMPLETA TOTAL -->
+    <div id="emulator-screen" class="hidden fixed inset-0 bg-black z-[9999] flex flex-col w-screen h-screen">
+        <div class="bg-emerald-950/90 border-b border-emerald-800/50 p-2.5 flex justify-between items-center shrink-0">
+            <span id="emulator-title" class="font-bold text-xs text-emerald-300 truncate max-w-[150px]">Cargando juego...</span>
+            <div class="flex gap-2 items-center">
+                <button type="button" onclick="toggleFullscreen()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold">⛶ Fullscreen</button>
+                <button type="button" id="download-zip-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold hidden">📥 ZIP</button>
+                <button type="button" onclick="closeEmulator()" class="bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold">✕ Cerrar</button>
+            </div>
+        </div>
+        <div id="emulator-content" class="flex-1 w-full h-full relative bg-black flex items-center justify-center overflow-hidden">
+            <div id="emulator-loading" class="text-center z-10 p-4">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-2"></div>
+                <p class="text-xs text-emerald-400" id="loading-text">Extrayendo y ejecutando juego...</p>
+            </div>
+            <iframe id="game-frame" class="w-full h-full border-none absolute inset-0 hidden" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+        </div>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
         const firebaseConfig = { projectId: "snowproductions" };
         if (!firebase.apps.length) {
@@ -171,7 +172,6 @@
 
         let currentObjectUrl = null;
 
-        // Event listener seguro para el formulario de login
         loginForm.addEventListener("submit", function(e) {
             e.preventDefault();
             const u = document.getElementById("username").value.trim();
@@ -185,7 +185,6 @@
                 return;
             }
 
-            // 1. Verificación Admin (Local e Inmediata)
             if (u === ADMIN_USER && p === ADMIN_PASS) {
                 localStorage.setItem("session_role", "admin");
                 localStorage.setItem("session_user", ADMIN_USER);
@@ -194,7 +193,6 @@
                 return;
             }
 
-            // 2. Verificación Invitado (Firestore)
             loginBtn.textContent = "Verificando...";
             loginBtn.disabled = true;
 
@@ -375,81 +373,4 @@
                 const blob = new Blob([bytes], { type: "application/zip" });
 
                 loadingText.textContent = "Descomprimiendo archivos...";
-                const zip = new JSZip();
-                
-                zip.loadAsync(blob).then(async (zipContent) => {
-                    let indexFile = null;
-                    let filesMap = {};
-
-                    for (let filename of Object.keys(zipContent.files)) {
-                        const zipEntry = zipContent.files[filename];
-                        if (!zipEntry.dir) {
-                            const fileBlob = await zipEntry.async("blob");
-                            const fileUrl = URL.createObjectURL(fileBlob);
-                            filesMap[filename] = fileUrl;
-                            filesMap['/' + filename] = fileUrl;
-                            if (filename.toLowerCase().endsWith("index.html") && !indexFile) {
-                                indexFile = fileUrl;
-                            }
-                        }
-                    }
-
-                    if (!indexFile) throw new Error("No se encontró index.html dentro del archivo ZIP.");
-
-                    const htmlResponse = await fetch(indexFile);
-                    let htmlText = await htmlResponse.text();
-
-                    for (let path in filesMap) {
-                        if (path !== 'index.html' && path !== '/index.html') {
-                            const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-                            htmlText = htmlText.replaceAll(`"${cleanPath}"`, `"${filesMap[path]}"`);
-                            htmlText = htmlText.replaceAll(`'${cleanPath}'`, `'${filesMap[path]}'`);
-                            htmlText = htmlText.replaceAll(`="${cleanPath}"`, `="${filesMap[path]}"`);
-                        }
-                    }
-
-                    const finalBlob = new Blob([htmlText], { type: "text/html" });
-                    currentObjectUrl = URL.createObjectURL(finalBlob);
-
-                    gameFrame.src = currentObjectUrl;
-                    emulatorLoading.classList.add("hidden");
-                    gameFrame.classList.remove("hidden");
-
-                    downloadZipBtn.onclick = () => {
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(blob);
-                        a.download = name.toLowerCase().replace(/\s+/g, '-') + '.zip';
-                        a.click();
-                    };
-                    downloadZipBtn.classList.remove("hidden");
-                }).catch((err) => {
-                    emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al descomprimir: ${err.message}</p>`;
-                });
-
-            } catch (err) {
-                emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al procesar: ${err.message}</p>`;
-            }
-        }
-
-        function closeEmulator() {
-            emulatorScreen.classList.add("hidden");
-            gameFrame.src = "";
-            if (currentObjectUrl) {
-                URL.revokeObjectURL(currentObjectUrl);
-                currentObjectUrl = null;
-            }
-        }
-
-        window.onload = function() {
-            const role = localStorage.getItem("session_role");
-            if (role === "admin") {
-                showPanel("admin");
-                loadAdminData();
-            } else if (role === "guest") {
-                showPanel("guest");
-                loadGuestGames();
-            }
-        };
-    </script>
-</body>
-</html>
+                const zip = new JSZ
