@@ -183,6 +183,7 @@
                 return;
             }
 
+            // 1. Verificación Admin (SIEMPRE OFFLINE Y LOCAL)
             if (u === ADMIN_USER && p === ADMIN_PASS) {
                 localStorage.setItem("session_role", "admin");
                 localStorage.setItem("session_user", ADMIN_USER);
@@ -191,6 +192,27 @@
                 return;
             }
 
+            // 2. Verificación sin conexión a internet (Offline First)
+            if (!navigator.onLine) {
+                const cachedUser = localStorage.getItem("last_guest_user");
+                const cachedPass = localStorage.getItem("last_guest_pass");
+
+                if (cachedUser && cachedPass && u === cachedUser && p === cachedPass) {
+                    localStorage.setItem("session_role", "guest");
+                    localStorage.setItem("session_user", u);
+                    showPanel("guest");
+                    loadGuestGames();
+                    return;
+                } else {
+                    if (loginError) {
+                        loginError.textContent = "Sin conexión: Solo el Admin o la última cuenta guardada pueden entrar offline.";
+                        loginError.classList.remove("hidden");
+                    }
+                    return;
+                }
+            }
+
+            // 3. Verificación online en Firebase Firestore
             if (loginBtn) {
                 loginBtn.textContent = "Verificando...";
                 loginBtn.disabled = true;
@@ -208,6 +230,10 @@
                 if (match) {
                     localStorage.setItem("session_role", "guest");
                     localStorage.setItem("session_user", u);
+                    // Guardamos credenciales localmente para habilitar login sin internet
+                    localStorage.setItem("last_guest_user", u);
+                    localStorage.setItem("last_guest_pass", p);
+                    
                     showPanel("guest");
                     loadGuestGames();
                 } else {
@@ -218,7 +244,7 @@
                 }
             }).catch((err) => {
                 if (loginError) {
-                    loginError.textContent = "Error al conectar con la base de datos.";
+                    loginError.textContent = "Error al conectar. Intenta de nuevo.";
                     loginError.classList.remove("hidden");
                 }
             }).finally(() => {
