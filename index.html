@@ -142,8 +142,17 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT BLINDADA -->
+    <!-- LÓGICA JAVASCRIPT Y SERVICE WORKER OFFLINE -->
     <script>
+        // Registro del Service Worker para funcionamiento sin conexión (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => {
+                    console.log('ServiceWorker no registrado: ', err);
+                });
+            });
+        }
+
         const firebaseConfig = { projectId: "snowproductions" };
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
