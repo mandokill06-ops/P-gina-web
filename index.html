@@ -381,4 +381,75 @@
                     let indexFile = null;
                     let filesMap = {};
 
-          
+                    for (let filename of Object.keys(zipContent.files)) {
+                        const zipEntry = zipContent.files[filename];
+                        if (!zipEntry.dir) {
+                            const fileBlob = await zipEntry.async("blob");
+                            const fileUrl = URL.createObjectURL(fileBlob);
+                            filesMap[filename] = fileUrl;
+                            filesMap['/' + filename] = fileUrl;
+                            if (filename.toLowerCase().endsWith("index.html") && !indexFile) {
+                                indexFile = fileUrl;
+                            }
+                        }
+                    }
+
+                    if (!indexFile) throw new Error("No se encontró index.html dentro del archivo ZIP.");
+
+                    const htmlResponse = await fetch(indexFile);
+                    let htmlText = await htmlResponse.text();
+
+                    for (let path in filesMap) {
+                        if (path !== 'index.html' && path !== '/index.html') {
+                            const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+                            htmlText = htmlText.replaceAll(`"${cleanPath}"`, `"${filesMap[path]}"`);
+                            htmlText = htmlText.replaceAll(`'${cleanPath}'`, `'${filesMap[path]}'`);
+                            htmlText = htmlText.replaceAll(`="${cleanPath}"`, `="${filesMap[path]}"`);
+                        }
+                    }
+
+                    const finalBlob = new Blob([htmlText], { type: "text/html" });
+                    currentObjectUrl = URL.createObjectURL(finalBlob);
+
+                    gameFrame.src = currentObjectUrl;
+                    emulatorLoading.classList.add("hidden");
+                    gameFrame.classList.remove("hidden");
+
+                    downloadZipBtn.onclick = () => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = name.toLowerCase().replace(/\s+/g, '-') + '.zip';
+                        a.click();
+                    };
+                    downloadZipBtn.classList.remove("hidden");
+                }).catch((err) => {
+                    emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al descomprimir: ${err.message}</p>`;
+                });
+
+            } catch (err) {
+                emulatorLoading.innerHTML = `<p class="text-rose-400 text-sm">Error al procesar: ${err.message}</p>`;
+            }
+        }
+
+        function closeEmulator() {
+            emulatorScreen.classList.add("hidden");
+            gameFrame.src = "";
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+        }
+
+        window.onload = function() {
+            const role = localStorage.getItem("session_role");
+            if (role === "admin") {
+                showPanel("admin");
+                loadAdminData();
+            } else if (role === "guest") {
+                showPanel("guest");
+                loadGuestGames();
+            }
+        };
+    </script>
+</body>
+</html>
